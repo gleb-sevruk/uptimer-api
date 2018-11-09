@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: prometheus-prometheus-server
+  namespace: gitlab-managed-apps
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: monitoring.k8.dealer-advance.com
+    http:
+      paths:
+        - backend:
+            serviceName: prometheus-prometheus-server
+            servicePort: 9090
+          path: /

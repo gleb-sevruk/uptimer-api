@@ -1,0 +1,68 @@
+image: docker:stable
+
+# When using dind, it's wise to use the overlayfs driver for
+# improved performance.
+#variables:
+#  DOCKER_DRIVER: overlay2
+
+#services:
+#  - docker:dind
+#  - docker:dind
+
+before_script:
+#  - export DOCKER_HOST="tcp://localhost:2375"
+  - docker info
+
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  script:
+    - echo "Running tests"
+    - echo ${KUBERNETES_SERVICE_ACCOUNT}
+
+
+build_image:
+  script:
+#    - export DOCKER_HOST="tcp://localhost:2375"
+    - docker build -t $CI_REGISTRY_IMAGE:latest -f deployment/Dockerfile .
+    # push only for tags
+    - "[[ -z $CI_BUILD_TAG ]] && exit 0"
+    - docker tag $CI_REGISTRY_IMAGE:latest $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker push $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+  only:
+    - tags
+
+
+deploy_staging:
+  stage: deploy
+  image: registry.gitlab.com/gitlab-examples/kubernetes-deploy
+  script:
+#    - export DOCKER_HOST="tcp://localhost:2375"
+    - echo "Deploy to staging server"
+    - echo "${KUBE_URL}"
+    - echo "${KUBE_CA_PEM}" > kube_ca.pem
+    - kubectl config set-cluster default-cluster --server=${KUBE_URL} --certificate-authority="$(pwd)/kube_ca.pem"
+    - kubectl config set-credentials default-admin --token=${KUBE_TOKEN}
+    - kubectl config set-context default-system --cluster=default-cluster --user=default-admin --namespace ${KUBE_NAMESPACE}
+    - kubectl config use-context default-system
+    - kubectl cluster-info
+    - curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
+    - chmod 700 get_helm.sh
+    - ./get_helm.sh
+    - helm
+    - helm list
+    - env
+    - pwd
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - helm upgrade --install stage-django ./helm-hello-world --set ci_env.url=${CI_ENVIRONMENT_URL},image.tag=$CI_BUILD_TAG
+  environment:
+    name: staging
+    url: staging.django.gke.dealer-advance.com
+  only:
+    - tags
+

@@ -1,0 +1,15 @@
+kind: Service
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-redis
+  labels:
+    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-redis
+    version: {{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: redis
+  selector:
+    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-redis
+

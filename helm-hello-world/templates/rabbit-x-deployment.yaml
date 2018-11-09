@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-rabbit
+  labels:
+    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-rabbit
+    version: {{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-rabbit
+        version: {{ .Chart.Version }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: rabbit
+#          imagePullPolicy: Always
+          image: rabbitmq
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
+                  key: rabbit-default-user
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
+                  key: rabbit-default-pass
+          ports:
+            - containerPort: 5672
+              protocol: TCP
+

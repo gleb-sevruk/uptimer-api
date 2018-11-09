@@ -1,0 +1,65 @@
+version: '2'
+
+services:
+  db:
+    image: postgres
+    hostname: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+#    ports:
+#      - "5432:5432"
+  # Redis
+  redis:
+    image: redis
+    hostname: redis
+
+  # RabbitMQ
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=mypass
+    ports:
+      - "5672:5672"  # we forward this port because it's useful for debugging
+      - "15672:15672"  # here, we can access rabbitmq management plugin
+
+  # Django web server
+  web:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile
+    hostname: web
+    command: ./deployment/run_web.sh
+    stop_signal: KILL
+    volumes:
+      - .:/code  # mount current directory inside container
+    ports:
+      - "8081:8081"
+    # set up links so that web knows about db, rabbit and redis
+    links:
+      - rabbit
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=djangok8.settings.local
+      - LOGGING_CUSTOM_TAGS=${LOGGING_CUSTOM_TAGS}
+
+
+  # Celery worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ./deployment/run_celery.sh
+    volumes:
+      - .:/code
+    links:
+      - rabbit
+      - redis
+    depends_on:
+      - rabbit
+    environment:
+      - DJANGO_SETTINGS_MODULE=djangok8.settings.local
+      - LOGGING_CUSTOM_TAGS=celery;${LOGGING_CUSTOM_TAGS}

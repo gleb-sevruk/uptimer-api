@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
+  labels:
+    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
+    version: {{ .Chart.Version }}
+    release: {{ .Release.Name }}
+type: Opaque
+data:
+  postgres-conntection-string: postgres://postgres:72jH9qVPA7@django-postgresql/postgres
+  redis-hostname: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-redis
+  rabbit-hostname: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-rabbit
+  rabbit-default-user: admin
+  rabbit-default-pass: mypass
+
