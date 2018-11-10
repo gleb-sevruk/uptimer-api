@@ -59,10 +59,10 @@ deploy_staging:
     - env
     - pwd
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
-    - helm upgrade --install stage-django ./helm-hello-world --set ci_env.url=${CI_ENVIRONMENT_URL},image.tag=$CI_BUILD_TAG
+    - helm upgrade --install stage-uptime-api-django ./helm-hello-world --set ci_env.url=${CI_ENVIRONMENT_URL},image.tag=$CI_BUILD_TAG
   environment:
     name: staging
-    url: staging.django.gke.dealer-advance.com
+    url: dev.uptime-api.briteapps.space
   only:
     - tags
 

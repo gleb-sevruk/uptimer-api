@@ -4,6 +4,8 @@ celery
 redis
 psycopg2
 djangorestframework
+markdown
+django-filter
 dj-database-url
 graypy
 raven

@@ -2,8 +2,8 @@
 import os
 import sys
 
-if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangok8.settings.production")
+if __name__ == '__main__':
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangok8.settings.local')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
