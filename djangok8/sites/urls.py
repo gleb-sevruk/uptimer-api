@@ -72,13 +72,16 @@ class SiteDetail(APIView):
         snippet = self.get_object(pk)
         serializer = SiteSerializer(snippet, data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(commit=True)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, pk, req):
+    def patch(self, request, pk, format=None):
         site = self.get_object(pk)
         site.update_availability()
+        serializer = SiteSerializer(site, context={'request': request})
+
+        return Response(data=serializer.data)
 
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)

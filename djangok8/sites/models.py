@@ -1,9 +1,11 @@
 import datetime
 import uuid
 
+import django
 import requests
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class SiteAvailabilityStatus:
@@ -22,7 +24,7 @@ class Site(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     site_url = models.CharField(max_length=1200)
-    last_check_at = models.DateTimeField(default=datetime.datetime.utcnow())
+    last_check_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=200, default='created')
     status_code = models.IntegerField(default=-1)
 
