@@ -6,8 +6,10 @@ psycopg2
 djangorestframework
 markdown
 django-filter
+requests
 dj-database-url
 graypy
 raven
 uwsgi
+django-cors-headers
 

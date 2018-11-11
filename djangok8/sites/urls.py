@@ -28,14 +28,8 @@ from djangok8.sites.models import Site
 class SiteSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Site
-        fields = ('url', 'id', 'status', 'last_check_at', 'site_url')
+        fields = ('url', 'id', 'status','status_code', 'last_check_at', 'site_url')
 
-# ViewSets define the view behavior.
-class SiteViewSet(viewsets.ModelViewSet):
-    queryset = Site.objects.all()
-    serializer_class = SiteSerializer
-
-# Routers provide an easy way of automatically determining the URL conf.
 
 
 
@@ -82,6 +76,10 @@ class SiteDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, pk, req):
+        site = self.get_object(pk)
+        site.update_availability()
+
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)
         snippet.delete()
@@ -90,7 +88,7 @@ class SiteDetail(APIView):
 urlpatterns = [
     # url(r'^', include(router.urls)),
     path('sites/', SiteList.as_view()),
-    path('sites/<pk>/', SiteDetail.as_view(), name='site-detail'),
+    path('site/<pk>/', SiteDetail.as_view(), name='site-detail'),
 
 ]
 
