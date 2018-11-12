@@ -25,17 +25,12 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
-                  key: postgres-conntection-string
-            - name: ENV_REDIS_PORT_6379_TCP_ADDR
+                  key: django-db-connection-string
+            - name: CELERY_BROKER_URL
               valueFrom:
                 configMapKeyRef:
                   name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
-                  key: redis-hostname
-            - name: ENV_RABBIT_PORT_5672_TCP
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
-                  key: rabbit-hostname
+                  key: celery-broker-url
 
 
       imagePullSecrets:

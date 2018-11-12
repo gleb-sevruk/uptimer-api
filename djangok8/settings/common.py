@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+import dj_database_url
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -79,12 +81,21 @@ WSGI_APPLICATION = 'djangok8.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+sqlite_path = os.path.join(BASE_DIR, 'db.sqlite3')
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': sqlite_path,
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.config(
+      env='ENV_DATABASE_URL',
+      default='sqlite:///' + sqlite_path
+    ),
 }
+
 
 
 # Password validation
@@ -124,3 +135,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
+CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672//"
+# CELERY_BROKER_URL = 'amqp://admin:mypass@localhost'

@@ -19,17 +19,6 @@ spec:
         - name: rabbit
 #          imagePullPolicy: Always
           image: rabbitmq
-          env:
-            - name: RABBITMQ_DEFAULT_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
-                  key: rabbit-default-user
-            - name: RABBITMQ_DEFAULT_PASS
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
-                  key: rabbit-default-pass
           ports:
             - containerPort: 5672
               protocol: TCP

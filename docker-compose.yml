@@ -19,9 +19,9 @@ services:
   rabbit:
     hostname: rabbit
     image: rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=mypass
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=admin
+#      - RABBITMQ_DEFAULT_PASS=mypass
     ports:
       - "5672:5672"  # we forward this port because it's useful for debugging
       - "15672:15672"  # here, we can access rabbitmq management plugin

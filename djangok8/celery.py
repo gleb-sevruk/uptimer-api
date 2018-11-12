@@ -3,7 +3,10 @@ import os
 from celery import Celery
 
 # set the default Django settings module for the 'celery' program.
+from django.conf import settings
+
 from djangok8.sites.tasks import UpdateAllSitesAvailabilityTask
+from djangok8.tasks import TestTask
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangok8.settings.local')
 
@@ -23,6 +26,7 @@ app.autodiscover_tasks()
 def setup_periodic_tasks(sender, **kwargs):
     # Calls test('world') every 30 seconds
     sender.add_periodic_task(30.0, UpdateAllSitesAvailabilityTask(), expires=10)
+    sender.add_periodic_task(1.0, TestTask(), expires=10)
 
 @app.task(bind=True)
 def debug_task(self):

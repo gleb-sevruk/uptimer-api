@@ -6,5 +6,5 @@ from celery.task import Task
 class TestTask(Task):
 
     def run(self, *args, **kwargs):
-        print('running task...')
+        print('running test task...')
         return True
