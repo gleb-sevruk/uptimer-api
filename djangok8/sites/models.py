@@ -31,6 +31,8 @@ class Site(models.Model):
     status = models.CharField(max_length=200, default='created')
     status_code = models.IntegerField(default=-1)
     update_pending = models.BooleanField(default=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+
 
     def __str__(self):
         return self.site_url

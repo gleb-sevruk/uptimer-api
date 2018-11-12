@@ -16,18 +16,25 @@ Including another URLconf
 from django.http import Http404
 from django.urls import path
 from rest_framework import serializers, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework.views import APIView
 
+from djangok8.sites.auth import CustomAuthToken
 from djangok8.sites.models import Site
 from djangok8.tasks import TestTask
 
 
 class SiteSerializer(serializers.HyperlinkedModelSerializer):
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
     class Meta:
         model = Site
-        fields = ('url', 'id', 'status','status_code', 'update_pending', 'last_check_at', 'site_url')
+        fields = ('url', 'id','user','status','status_code', 'update_pending', 'last_check_at', 'site_url')
 
 
 
@@ -37,15 +44,18 @@ class SiteList(APIView):
     List all snippets, or create a new snippet.
     """
     serializer_class = SiteSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
-        snippets = Site.objects.all()
+        snippets = Site.objects.filter(user=request.user.id)
         serializer = SiteSerializer(snippets, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request, format=None):
         serializer = SiteSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
+
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -92,6 +102,7 @@ urlpatterns = [
     # url(r'^', include(router.urls)),
     path('sites/', SiteList.as_view()),
     path('site/<pk>/', SiteDetail.as_view(), name='site-detail'),
+    path('auth/login/', CustomAuthToken.as_view())
 
 ]
 
