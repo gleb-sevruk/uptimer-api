@@ -1,11 +1,14 @@
 import datetime
 import uuid
+from datetime import timedelta
 
 import django
 import requests
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+
+from djangok8.sites.tasks import UpdateAvailabilityTask
 
 
 class SiteAvailabilityStatus:
@@ -27,6 +30,7 @@ class Site(models.Model):
     last_check_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=200, default='created')
     status_code = models.IntegerField(default=-1)
+    update_pending = models.BooleanField(default=False)
 
     def __str__(self):
         return self.site_url
@@ -40,10 +44,15 @@ class Site(models.Model):
 
         return status
 
+    def update_availability_async(self):
+        self.update_pending = True
+        self.save()
+        UpdateAvailabilityTask.delay(1, site_id=self.id)
 
     def update_availability(self):
         status = self.check_availability()
         self.status = status.code
+        self.update_pending = False
         self.last_check_at = datetime.datetime.utcnow()
         self.save()
 

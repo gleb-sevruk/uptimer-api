@@ -13,22 +13,21 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf.urls import url
-from django.contrib import admin
 from django.http import Http404
-from django.urls import path, include
-from rest_framework import serializers, viewsets, routers, status
+from django.urls import path
+from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework.views import APIView
 
 from djangok8.sites.models import Site
+from djangok8.tasks import TestTask
 
 
 class SiteSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Site
-        fields = ('url', 'id', 'status','status_code', 'last_check_at', 'site_url')
+        fields = ('url', 'id', 'status','status_code', 'update_pending', 'last_check_at', 'site_url')
 
 
 
@@ -78,10 +77,11 @@ class SiteDetail(APIView):
 
     def patch(self, request, pk, format=None):
         site = self.get_object(pk)
-        site.update_availability()
-        serializer = SiteSerializer(site, context={'request': request})
+        site.update_availability_async()
+        # TestTask.delay(1)
+        # serializer = SiteSerializer(site, context={'request': request})
 
-        return Response(data=serializer.data)
+        return Response(status=status.HTTP_202_ACCEPTED)
 
     def delete(self, request, pk, format=None):
         snippet = self.get_object(pk)
