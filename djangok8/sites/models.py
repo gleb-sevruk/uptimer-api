@@ -20,6 +20,20 @@ class SiteAvailabilityStatus:
         self.message = message
 
 
+class FcmDevice(models.Model):
+    class Meta:
+        verbose_name = 'Fcm Token'
+
+    fcm_token = models.CharField(max_length=1200, unique=True)
+    brand = models.CharField(max_length=200)
+    build_number = models.CharField(max_length=200)
+    device_id = models.CharField(max_length=100)
+    unique_id = models.CharField(max_length=100)
+    device_name = models.CharField(max_length=400)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+
+
+
 class Site(models.Model):
     class Meta:
         verbose_name = 'Site'

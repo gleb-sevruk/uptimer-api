@@ -23,7 +23,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework.views import APIView
 
 from djangok8.sites.auth import CustomAuthToken
-from djangok8.sites.models import Site
+from djangok8.sites.models import Site, FcmDevice
 from djangok8.tasks import TestTask
 
 
@@ -34,8 +34,33 @@ class SiteSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Site
-        fields = ('url', 'id','user','status','status_code', 'update_pending', 'last_check_at', 'site_url')
+        fields = ('url', 'id', 'user', 'status', 'status_code', 'update_pending', 'last_check_at', 'site_url')
 
+
+class DeviceStatsSerializer(serializers.Serializer):
+
+
+    class Meta:
+        model = Site
+        fields = (
+                  )
+
+
+class FcmTokenRegistrationSerializer(serializers.ModelSerializer):
+    user = serializers.CurrentUserDefault()
+
+
+    fcm_token = serializers.CharField( validators = [])
+
+    class Meta:
+        model = FcmDevice
+        fields = ('fcm_token',
+                  'brand',
+                  'unique_id',
+                  'build_number',
+                  'device_id',
+                  'device_name',
+                  'user',)
 
 
 
@@ -55,10 +80,30 @@ class SiteList(APIView):
     def post(self, request, format=None):
         serializer = SiteSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterFcmToken(APIView):
+    serializer_class = FcmTokenRegistrationSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def put(self, request, format=None):
+        serializer = FcmTokenRegistrationSerializer(data=request.data, context={'request': request}, partial=True)
+        if serializer.is_valid():
+            print('serializer valid')
+            FcmDevice.objects.update_or_create(**serializer.data, user=request.user)
+
+            print(serializer.data)
+        else:
+            print('serializer NOT valid')
+
+
+        return Response(serializer.errors, status=status.HTTP_202_ACCEPTED)
+
+
 
 
 class SiteDetail(APIView):
@@ -66,6 +111,7 @@ class SiteDetail(APIView):
     Retrieve, update or delete a snippet instance.
     """
     serializer_class = SiteSerializer
+
     def get_object(self, pk):
         try:
             return Site.objects.get(pk=pk)
@@ -98,13 +144,14 @@ class SiteDetail(APIView):
         snippet.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 urlpatterns = [
     # url(r'^', include(router.urls)),
     path('sites/', SiteList.as_view()),
     path('site/<pk>/', SiteDetail.as_view(), name='site-detail'),
-    path('auth/login/', CustomAuthToken.as_view())
+    path('auth/login/', CustomAuthToken.as_view()),
+    path('user/fcm-token/', RegisterFcmToken.as_view())
 
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
-
