@@ -1,4 +1,4 @@
-apiVersion: v1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-web
