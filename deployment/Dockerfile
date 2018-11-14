@@ -4,15 +4,15 @@ MAINTAINER GS
 
 ENV PYTHONUNBUFFERED 1
 
-#RUN apt-get update && apt-get install -y \
-#  cron \
-#  rsyslog \
-#  supervisor \
-#  &&  pip install circus \
-#  &&  pip install gunicorn
-#
-#RUN touch /var/log/cron.log
-#RUN chmod 0666 /var/log/cron.log
+RUN apt-get update && apt-get install -y \
+  cron \
+  rsyslog \
+  supervisor \
+  &&  pip install circus \
+  &&  pip install gunicorn
+
+RUN touch /var/log/cron.log
+RUN chmod 0666 /var/log/cron.log
 
 RUN mkdir /code
 RUN mkdir /my_django_data

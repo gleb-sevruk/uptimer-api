@@ -14,7 +14,7 @@ phases:
   pre_build:
     commands:
         - echo Logging in to Amazon ECR...
-        - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+        #- $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
 #       this will not succeed on AWS without --unsafe-perm, install this before npm install in current project
@@ -31,7 +31,7 @@ phases:
        - echo Pushing the Docker image...
        - echo $GCR_KEY > gcr_docker.json
        - docker login -u _json_key --password-stdin https://gcr.io < ./gcr_docker.json
-       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+       #- $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
        - docker push $BA_ECS_REPOSITORY/$BA_DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
         # ------
        - apt-get update && apt-get install -y apt-transport-https
