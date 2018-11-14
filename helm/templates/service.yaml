@@ -9,9 +9,9 @@ metadata:
 spec:
   ports:
   - port: 80
-    targetPort: 8080
+    targetPort: 8000 # django uwsgi port
     protocol: TCP
 
   selector:
     app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-web
-  type: NodePort
+#  type: NodePort
