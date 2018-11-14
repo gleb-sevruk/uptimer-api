@@ -8,7 +8,7 @@ from celery.task import Task
 class UpdateAllSitesAvailabilityTask(Task):
     def run(self, *args, **kwargs):
         from djangok8.sites.models import Site
-        since = datetime.utcnow() - timedelta(seconds=120)
+        since = datetime.utcnow() - timedelta(seconds=1)
         print(f'--- start ---- update ALL since: {since}')
         sites = Site.objects.filter(last_check_at__lte=since)
         for site in sites:

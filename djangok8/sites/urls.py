@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from datetime import datetime
+
 from django.http import Http404
 from django.urls import path
 from rest_framework import serializers, status
@@ -37,13 +39,6 @@ class SiteSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'id', 'user', 'status', 'status_code', 'update_pending', 'last_check_at', 'site_url')
 
 
-class DeviceStatsSerializer(serializers.Serializer):
-
-
-    class Meta:
-        model = Site
-        fields = (
-                  )
 
 
 class FcmTokenRegistrationSerializer(serializers.ModelSerializer):
@@ -60,7 +55,8 @@ class FcmTokenRegistrationSerializer(serializers.ModelSerializer):
                   'build_number',
                   'device_id',
                   'device_name',
-                  'user',)
+                  'user',
+                  )
 
 
 
@@ -94,7 +90,9 @@ class RegisterFcmToken(APIView):
         serializer = FcmTokenRegistrationSerializer(data=request.data, context={'request': request}, partial=True)
         if serializer.is_valid():
             print('serializer valid')
-            FcmDevice.objects.update_or_create(**serializer.data, user=request.user)
+            utcnow = datetime.utcnow()
+            FcmDevice.objects.update_or_create(fcm_token=serializer.data['fcm_token'], defaults={
+        'last_access_date': utcnow, 'user':request.user, **serializer.data, })
 
             print(serializer.data)
         else:

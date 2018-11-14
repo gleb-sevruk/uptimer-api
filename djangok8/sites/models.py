@@ -4,9 +4,11 @@ from datetime import timedelta
 
 import django
 import requests
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from pyfcm import FCMNotification
 
 from djangok8.sites.tasks import UpdateAvailabilityTask
 
@@ -30,6 +32,8 @@ class FcmDevice(models.Model):
     device_id = models.CharField(max_length=100)
     unique_id = models.CharField(max_length=100)
     device_name = models.CharField(max_length=400)
+    last_access_date = models.DateTimeField(default=timezone.now)
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
 
 
@@ -53,8 +57,13 @@ class Site(models.Model):
 
     def check_availability(self):
         try:
-            req = requests.get(self.site_url)
-            status = SiteAvailabilityStatus(code=req.status_code, message='ok')
+            req = requests.head(self.site_url)
+            code = req.status_code
+            if code == 200:
+                code = 'online'
+            else:
+                code = 'down'
+            status = SiteAvailabilityStatus(code=code, message='ok')
         except requests.exceptions.RequestException as e:
             status = SiteAvailabilityStatus(code='down', message=str(e))
 
@@ -67,8 +76,23 @@ class Site(models.Model):
 
     def update_availability(self):
         status = self.check_availability()
+        prev_status = self.status
         self.status = status.code
         self.update_pending = False
         self.last_check_at = datetime.datetime.utcnow()
         self.save()
+        if prev_status != self.status:
+            self.notify_user_about_status_change(prev_status, self.status)
 
+    def notify_user_about_status_change(self, old_status, new_status):
+        all_devices = FcmDevice.objects.filter(user=self.user).values_list('fcm_token', flat=True)
+
+        push_service = FCMNotification(api_key=settings.FCM_KEY)
+        if new_status == 'down':
+            # todo emoji
+            title = f'Site went offline'
+            msg = f'{self.site_url} - {new_status}'
+        else:
+            title = f'Back online!'
+            msg = f'{self.site_url} - {new_status}'
+        print(push_service.notify_multiple_devices(registration_ids=all_devices, message_title=title, message_body=msg, ))

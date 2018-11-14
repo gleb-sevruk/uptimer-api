@@ -10,6 +10,7 @@ type: Opaque
 data:
   django-db-connection-string: postgres://postgres:Uc7hFNfeA7@singing-ferrit-postgresql/postgres
   celery-broker-url: amqp://guest:guest@{{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-rabbit:5672//
+  fcm-key: {{ .Values.ci_env.fcm-key }}
 #  rabbit-default-user: admin
 #  rabbit-default-pass: mypass
 

@@ -4,3 +4,4 @@ image:
   tag: 'latest'
 ci_env:
   url: uptimer-api.local
+  fcm-key: put-your-key-here

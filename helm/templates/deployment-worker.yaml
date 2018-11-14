@@ -1,9 +1,9 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-web
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-worker
   labels:
-    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-web
+    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-worker
     version: {{ .Chart.Version }}
     release: {{ .Release.Name }}
 spec:
@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-web
+        app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-worker
         version: {{ .Chart.Version }}
         release: {{ .Release.Name }}
     spec:
@@ -19,15 +19,18 @@ spec:
         - name: hello-world
           imagePullPolicy: Always
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-          ports:
-            - containerPort: 8080
-              protocol: TCP
+          command: ["./deployment/run_celery.sh"]
           env:
             - name: ENV_DATABASE_URL
               valueFrom:
                 configMapKeyRef:
                   name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
                   key: django-db-connection-string
+            - name: FCM_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}
+                  key: fcm-key
             - name: CELERY_BROKER_URL
               valueFrom:
                 configMapKeyRef:

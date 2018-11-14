@@ -1,0 +1,64 @@
+version: 0.2
+
+env:
+  parameter-store:
+    BA_ECS_REPOSITORY: "BA_ECS_REPOSITORY"
+    KUBE_TOKEN: "kube_token"
+    KUBE_CA_PEM: "kube_ca_pem"
+    KUBE_NAMESPACE: "KUBE_NAMESPACE_UPTIMER"
+    KUBE_URL: "KUBE_URL"
+    GCR_KEY: "GCR_KEY"
+    FCM_KEY: "FCM_KEY"
+
+phases:
+  pre_build:
+    commands:
+        - echo Logging in to Amazon ECR...
+        - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+  build:
+    commands:
+#       this will not succeed on AWS without --unsafe-perm, install this before npm install in current project
+#      - npm install
+#      - npm run web-s3-override
+#      - npm run web-build
+       - env
+       - echo AWS_ACCOUNT_ID
+       - echo $AWS_ACCOUNT_ID
+       - echo AWS_DEFAULT_REGION
+       - echo $AWS_DEFAULT_REGION
+       - docker build . -f ./deployment/Dockerfile -t $BA_DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+       - docker tag $BA_DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION $BA_ECS_REPOSITORY/$BA_DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+       - echo Pushing the Docker image...
+       - echo $GCR_KEY > gcr_docker.json
+       - docker login -u _json_key --password-stdin https://gcr.io < ./gcr_docker.json
+       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+       - docker push $BA_ECS_REPOSITORY/$BA_DOCKER_IMAGE_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+        # ------
+       - apt-get update && apt-get install -y apt-transport-https
+       - curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+       - echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+       - apt-get update
+       - apt-get install -y kubectl
+       # deploy !!
+       # -----=-----
+       - echo "Deploy to k8 server"
+       - echo "${KUBE_URL}"
+       - echo "${KUBE_TOKEN}"
+       - echo "${KUBE_CA_PEM}" > kube_ca.pem
+       - echo $(pwd)
+       - echo $(pwd)/kube_ca.pem
+       - cat kube_ca.pem
+       - kubectl config set-cluster default-cluster --server=${KUBE_URL} --certificate-authority="$(pwd)/kube_ca.pem"
+       - kubectl config set-credentials default-admin --token=${KUBE_TOKEN}
+       - kubectl config set-context default-system --cluster=default-cluster --user=default-admin --namespace ${KUBE_NAMESPACE}
+       - kubectl config use-context default-system
+       - kubectl cluster-info
+       - kubectl get all
+       - curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get > get_helm.sh
+       - chmod 700 get_helm.sh
+       - ./get_helm.sh
+       - helm
+       - helm upgrade --install $BA_DOCKER_IMAGE_NAME ./helm --set ci_env.url=${CI_ENVIRONMENT_URL},image.tag=$CODEBUILD_RESOLVED_SOURCE_VERSION,ci_env.fcm-key=$FCM_KEY,image.repository=$BA_ECS_REPOSITORY/$BA_DOCKER_IMAGE_NAME,ssl.issuer_name=$ENV_TLS_ISSUER,ssl.tls_secret=$ENV_TLS_SECRET,ssl.acme_server=$ENV_TLS_ACME_SERVER,ssl.redirect=$ENV_HTTPS_REDIRECT --debug
+
+  post_build:
+    commands:

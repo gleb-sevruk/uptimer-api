@@ -1,4 +1,4 @@
 apiVersion: v1
 description: A Helm chart for Kubernetes
-name: helm-hello-world
+name: helm-uptimer-api
 version: 0.1.3
