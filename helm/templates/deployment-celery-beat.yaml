@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-celery-beat
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-beat
   labels:
-    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-celery-beat
+    app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-beat
     version: {{ .Chart.Version }}
     release: {{ .Release.Name }}
 spec:
@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-celery-beat
+        app: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 }}-beat
         version: {{ .Chart.Version }}
         release: {{ .Release.Name }}
     spec:
