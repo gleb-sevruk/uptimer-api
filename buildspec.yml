@@ -58,7 +58,7 @@ phases:
        - chmod 700 get_helm.sh
        - ./get_helm.sh
        - helm
-       - helm upgrade --install $BA_DOCKER_IMAGE_NAME ./helm --set ci_env.url=${CI_ENVIRONMENT_URL},image.tag=$CODEBUILD_RESOLVED_SOURCE_VERSION,ci_env.fcm-key=$FCM_KEY,image.repository=$BA_ECS_REPOSITORY/$BA_DOCKER_IMAGE_NAME,ssl.issuer_name=$ENV_TLS_ISSUER,ssl.tls_secret=$ENV_TLS_SECRET,ssl.acme_server=$ENV_TLS_ACME_SERVER,ssl.redirect=$ENV_HTTPS_REDIRECT --debug
+       - helm upgrade --install $BA_DOCKER_IMAGE_NAME ./helm --set ci_env.url=${CI_ENVIRONMENT_URL},image.tag=$CODEBUILD_RESOLVED_SOURCE_VERSION,ci_env.fcm_key=$FCM_KEY,image.repository=$BA_ECS_REPOSITORY/$BA_DOCKER_IMAGE_NAME,ssl.issuer_name=$ENV_TLS_ISSUER,ssl.tls_secret=$ENV_TLS_SECRET,ssl.acme_server=$ENV_TLS_ACME_SERVER,ssl.redirect=$ENV_HTTPS_REDIRECT --debug
 
   post_build:
     commands:
