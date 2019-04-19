@@ -1,3 +1,5 @@
+This is template for Django and Kubernetes deployment using Helm
+
 djangok8.settings.
 
 briteapps_django_data => my_django_data
